@@ -180,6 +180,7 @@ bool HE853Controller::sendRfData_AnBan(uint16_t deviceCode, uint8_t cmd)
 bool HE853Controller::sendRfData_GER(uint16_t deviceCode, bool cmd)
 {
 	uint8_t rfCmdBuf[32];
+#if 0
 	int i = 0;
 
 	uint8_t tb_fx[16] = { 0x07, 0x0b, 0x0d, 0x0e,
@@ -217,33 +218,40 @@ bool HE853Controller::sendRfData_GER(uint16_t deviceCode, bool cmd)
 		t64 = (t64 << 7) | kbuf[i];
 	}
 	t64 = t64 << 7;
+#endif
+	int val = 12345678 * 64 + 0 * 32 + cmd * 16 + deviceCode;
+	uint64_t t64 = 0;
+	for (int i = 0; i < 32; i++) {
+		int bit = val & (1 << i);
+		t64 |= (bit ? 2LL : 1LL) << (i * 2);
+	}
 	rfCmdBuf[0*8+0] = 0x01;
 	// StartBit_HTime
-	rfCmdBuf[0*8+1] = (uint8_t) ((260 / 10) >> 8);
-	rfCmdBuf[0*8+2] = (uint8_t) (260 / 10);
+	rfCmdBuf[0*8+1] = (uint8_t) (((260 / 10) + 7) >> 8);
+	rfCmdBuf[0*8+2] = (uint8_t) ((260 / 10) + 7);
 	// StartBit_LTime
-	rfCmdBuf[0*8+3] = (uint8_t) ((8600 / 10) >> 8);
-	rfCmdBuf[0*8+4] = (uint8_t) (8600 / 10);
+	rfCmdBuf[0*8+3] = (uint8_t) ((2730 / 10) >> 8);
+	rfCmdBuf[0*8+4] = (uint8_t) (2730 / 10);
 	// EndBit_HTime
-	rfCmdBuf[0*8+5] = 0x00;
-	rfCmdBuf[0*8+6] = 0x00;
+	rfCmdBuf[0*8+5] = (uint8_t) ((260 / 10) >> 8);
+	rfCmdBuf[0*8+6] = (uint8_t) (260 / 10);
 	// EndBit_LTime
-	rfCmdBuf[0*8+7] = 0x00;
+	rfCmdBuf[0*8+7] = (uint8_t) ((10400 / 10) >> 8);
 	rfCmdBuf[1*8+0] = 0x02;
 	// EndBit_LTime
-	rfCmdBuf[1*8+1] = 0x00;
+	rfCmdBuf[1*8+1] = (uint8_t) (10400 / 10);
 	// DataBit0_HTime
-	rfCmdBuf[1*8+2] = (uint8_t) (260 / 10);
+	rfCmdBuf[1*8+2] = (uint8_t) (260 / 10) + 7;
 	// DataBit0_LTime
-	rfCmdBuf[1*8+3] = (uint8_t) (260 / 10);
+	rfCmdBuf[1*8+3] = (uint8_t) (260 / 10) - 9;
 	// DataBit1_HTime
-	rfCmdBuf[1*8+4] = (uint8_t) (260 / 10);
+	rfCmdBuf[1*8+4] = (uint8_t) (260 / 10) + 7;
 	// DataBit1_LTimeur	
 	rfCmdBuf[1*8+5] = (uint8_t) (1300 / 10);
 	// DataBit_Count
-	rfCmdBuf[1*8+6] = (uint8_t) 57;
+	rfCmdBuf[1*8+6] = (uint8_t) 64;
 	// Frame_Count
-	rfCmdBuf[1*8+7] = (uint8_t) 7;
+	rfCmdBuf[1*8+7] = (uint8_t) 4;
 	rfCmdBuf[2*8+0] = 0x03;
 	rfCmdBuf[2*8+1] = (uint8_t) (t64 >> 56);
 	rfCmdBuf[2*8+2] = (uint8_t) (t64 >> 48);
